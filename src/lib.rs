@@ -1,3 +1,6 @@
+pub mod render_pipeline;
+pub mod render_pass;
+
 use wgpu::{CommandEncoder, Device, Queue, RenderPipeline, Surface, SurfaceConfiguration, SurfaceError, TextureView};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
