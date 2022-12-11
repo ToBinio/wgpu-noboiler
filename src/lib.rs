@@ -1,5 +1,7 @@
 pub mod render_pipeline;
 pub mod render_pass;
+pub mod buffer;
+pub mod vertex;
 
 use wgpu::{CommandEncoder, Device, Queue, RenderPipeline, Surface, SurfaceConfiguration, SurfaceError, TextureView};
 use winit::dpi::PhysicalSize;

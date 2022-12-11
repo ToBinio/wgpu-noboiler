@@ -1,4 +1,4 @@
-use wgpu::{CommandEncoder, RenderPass, Texture, TextureView};
+use wgpu::{CommandEncoder, RenderPass, TextureView};
 
 pub struct RenderPassCreator<'a> {
     encoder: &'a mut CommandEncoder,
@@ -14,12 +14,12 @@ impl<'a> RenderPassCreator<'a> {
     }
 }
 
-impl<'a> Into<RenderPass<'a>> for RenderPassCreator<'a> {
-    fn into(self) -> RenderPass<'a> {
-        self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+impl<'a> From<RenderPassCreator<'a>> for RenderPass<'a> {
+    fn from(render_pass_creator: RenderPassCreator<'a>) -> Self {
+        render_pass_creator.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Render Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: self.view,
+                view: render_pass_creator.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
