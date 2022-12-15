@@ -3,6 +3,8 @@ use wgpu::{CommandEncoder, RenderPass, TextureView};
 pub struct RenderPassCreator<'a> {
     encoder: &'a mut CommandEncoder,
     view: &'a TextureView,
+
+    label: &'a str,
 }
 
 impl<'a> RenderPassCreator<'a> {
@@ -10,16 +12,20 @@ impl<'a> RenderPassCreator<'a> {
         RenderPassCreator {
             encoder,
             view,
+            label: "Render Pass",
         }
     }
-}
 
-impl<'a> From<RenderPassCreator<'a>> for RenderPass<'a> {
-    fn from(render_pass_creator: RenderPassCreator<'a>) -> Self {
-        render_pass_creator.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Render Pass"),
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = label;
+        self
+    }
+
+    pub fn build(self) -> RenderPass<'a> {
+        self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some(self.label),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: render_pass_creator.view,
+                view: self.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {

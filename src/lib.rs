@@ -1,3 +1,7 @@
+//! # WGPU  NoBoiler
+//!
+//! A simplified Api for wgpu and winit
+
 pub mod render_pipeline;
 pub mod render_pass;
 pub mod buffer;
@@ -9,11 +13,15 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
+extern crate core;
+
 pub struct State {
     surface: Surface,
+
     pub device: Device,
     pub queue: Queue,
     pub config: SurfaceConfiguration,
+
     size: PhysicalSize<u32>,
 
     pub render_pipelines: Vec<RenderPipeline>,
@@ -21,7 +29,7 @@ pub struct State {
     input_fn: Option<InputFn>,
     update_fn: Option<UpdateFn>,
     render_fn: Option<RenderFn>,
-    render_pipeline_fn: Option<RenderPipelineFn>,
+    init_render_pipeline_fn: Option<InitRenderPipelineFn>,
 }
 
 impl State {
@@ -36,7 +44,7 @@ impl State {
     }
 
     pub fn create_render_pipeline(&mut self) {
-        match self.render_pipeline_fn {
+        match self.init_render_pipeline_fn {
             None => {}
             Some(function) => {
                 let mut render_pipelines = Vec::new();
@@ -134,7 +142,7 @@ impl App {
             input_fn: None,
             update_fn: None,
             render_fn: None,
-            render_pipeline_fn: None,
+            init_render_pipeline_fn: None,
         };
 
         App {
@@ -160,8 +168,8 @@ impl App {
         self
     }
 
-    pub fn render_pipeline(mut self, render_pipeline: RenderPipelineFn) -> Self {
-        self.state.render_pipeline_fn = Some(render_pipeline);
+    pub fn init_render_pipeline(mut self, render_pipeline: InitRenderPipelineFn) -> Self {
+        self.state.init_render_pipeline_fn = Some(render_pipeline);
         self
     }
 
@@ -194,11 +202,8 @@ impl App {
                 }
                 Event::RedrawRequested(window_id)
                 if window_id == window.id() => {
-                    match state.update_fn {
-                        None => {}
-                        Some(update) => {
-                            update(&mut state);
-                        }
+                    if state.update_fn.is_some() {
+                        state.update_fn.unwrap()(&mut state)
                     }
 
                     match state.render() {
@@ -223,4 +228,4 @@ pub type UpdateFn = fn(_: &mut State);
 
 pub type RenderFn = fn(_: &State, _: CommandEncoder, _: TextureView);
 
-pub type RenderPipelineFn = fn(_: &State, _: &mut Vec<RenderPipeline>);
+pub type InitRenderPipelineFn = fn(_: &State, _: &mut Vec<RenderPipeline>);

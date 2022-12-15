@@ -18,48 +18,42 @@ impl Vertex<2> for ColoredVertex {
 }
 
 fn main() {
-    App::new().
-        input(|_state, _window| false)
+    App::new()
+        .init_render_pipeline(render_pipeline)
         .render(render)
-        .render_pipeline(render_pipeline)
         .run();
 }
 
 fn render(state: &State, mut encoder: CommandEncoder, view: TextureView) {
-    let mut vertex_creator = BufferCreator::vertex(&state.device);
-    vertex_creator.set_data(vec![
-        ColoredVertex { position: [-0.0868241, 0.49240386, 0.0], color: [0.5, 0.0, 0.5] }, // A
-        ColoredVertex { position: [-0.49513406, 0.06958647, 0.0], color: [0.5, 0.0, 0.5] }, // B
-        ColoredVertex { position: [-0.21918549, -0.44939706, 0.0], color: [0.5, 0.0, 0.5] }, // C
-        ColoredVertex { position: [0.35966998, -0.3473291, 0.0], color: [0.5, 0.0, 0.5] }, // D
-        ColoredVertex { position: [0.44147372, 0.2347359, 0.0], color: [0.5, 0.0, 0.5] }, // E
-    ]);
-    let vertex_buffer = vertex_creator.generate_buffer();
+    let vertex_buffer = BufferCreator::vertex(&state.device)
+        .data(vec![
+            ColoredVertex { position: [-0.5, 0.5, 0.0], color: [0.5, 0.0, 0.5] },
+            ColoredVertex { position: [-0.5, -0.5, 0.0], color: [0.5, 0.0, 0.5] },
+            ColoredVertex { position: [0.5, 0.5, 0.0], color: [0.5, 0.0, 0.5] },
+            ColoredVertex { position: [0.5, -0.5, 0.0], color: [0.5, 0.0, 0.5] },
+        ]).build();
 
-    let mut indices_creator = BufferCreator::indices(&state.device);
-    indices_creator.set_data(vec![0, 1, 4,
-                                  1, 2, 4,
-                                  2, 3, 4, ]);
-
-    let indices_buffer = indices_creator.generate_buffer();
+    let indices_buffer = BufferCreator::indices(&state.device)
+        .data(vec![0, 1, 2, 2, 1, 3]).build();
 
     {
-        let mut render_pass: RenderPass = RenderPassCreator::new(&mut encoder, &view).into();
+        let mut render_pass: RenderPass = RenderPassCreator::new(&mut encoder, &view).build();
 
         render_pass.set_pipeline(state.render_pipelines.get(0).unwrap());
 
-        render_pass.set_vertex_buffer(0, vertex_buffer.slice(..));
-        render_pass.set_index_buffer(indices_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        render_pass.set_vertex_buffer(0, vertex_buffer.slice());
+        render_pass.set_index_buffer(indices_buffer.slice(), wgpu::IndexFormat::Uint32);
 
-        render_pass.draw_indexed(0..indices_creator.size() as u32, 0, 0..1);
+        render_pass.draw_indexed(0..indices_buffer.size(), 0, 0..1);
     }
 
     state.queue.submit(std::iter::once(encoder.finish()));
 }
 
 fn render_pipeline(state: &State, vec: &mut Vec<RenderPipeline>) {
-    let mut render_pipeline_creator = RenderPipelineCreator::from_state(state, "examples/shader.wgsl");
-    render_pipeline_creator.add_vertex_buffer(ColoredVertex::descriptor());
+    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shader.wgsl", state)
+        .add_vertex_buffer(ColoredVertex::descriptor())
+        .build();
 
-    vec.push(render_pipeline_creator.into());
+    vec.push(render_pipeline);
 }

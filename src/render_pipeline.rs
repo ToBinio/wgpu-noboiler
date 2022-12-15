@@ -1,64 +1,79 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{Device, RenderPipeline, SurfaceConfiguration, VertexBufferLayout};
+use wgpu::{RenderPipeline, ShaderModule, VertexBufferLayout};
 
 use crate::State;
 
 pub struct RenderPipelineCreator<'a> {
-    device: &'a Device,
-    config: &'a SurfaceConfiguration,
+    state: &'a State,
 
-    shader_path: &'a str,
+    shader: ShaderModule,
+    vertex_main: &'a str,
+    fragment_main: &'a str,
 
     vertex_buffer: Vec<VertexBufferLayout<'a>>,
+
+    label: &'a str,
 }
 
 impl<'a> RenderPipelineCreator<'a> {
-    pub fn from_state(state: &'a State, shader_file_path: &'a str) -> RenderPipelineCreator<'a> {
+    pub fn from_shader_file(path: &'a str, state: &'a State) -> RenderPipelineCreator<'a> {
+        let string = fs::read_to_string(path).expect("TODO: panic message");
+
+        let shader = state.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Render Pipeline Shader"),
+            source: wgpu::ShaderSource::Wgsl(Cow::from(string)),
+        });
+
         RenderPipelineCreator {
-            device: &state.device,
-            config: &state.config,
-            shader_path: shader_file_path,
+            state,
+            shader,
+            vertex_main: "vs_main",
+            fragment_main: "fs_main",
+
             vertex_buffer: vec![],
+
+            label: "Render Pipeline",
         }
     }
 
-    pub fn add_vertex_buffer(&mut self, buffer: VertexBufferLayout<'a>) -> &mut Self {
+    pub fn add_vertex_buffer(mut self, buffer: VertexBufferLayout<'a>) -> Self {
         self.vertex_buffer.push(buffer);
 
         self
     }
-}
 
-impl<'a> From<RenderPipelineCreator<'a>> for RenderPipeline {
-    fn from(render_pipeline_creator: RenderPipelineCreator) -> Self {
-        let string = fs::read_to_string(render_pipeline_creator.shader_path).expect("TODO: panic message");
+    pub fn fragment_main(mut self, fn_name: &'a str) -> Self {
+        self.fragment_main = fn_name;
+        self
+    }
 
-        let shader = render_pipeline_creator.device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("Shader"),
-            source: wgpu::ShaderSource::Wgsl(Cow::from(string)),
-        });
+    pub fn vertex_main(mut self, fn_name: &'a str) -> Self {
+        self.vertex_main = fn_name;
+        self
+    }
 
-        let render_pipeline_layout = render_pipeline_creator.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("Render Pipeline Layout"),
+    pub fn build(&self) -> RenderPipeline {
+        let render_pipeline_layout = self.state.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some(&(self.label.to_owned() + " Layout")),
             bind_group_layouts: &[],
             push_constant_ranges: &[],
         });
 
-        render_pipeline_creator.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("Render Pipeline"),
+        self.state.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some(self.label),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: "vs_main",
-                buffers: &render_pipeline_creator.vertex_buffer[..],
+                module: &self.shader,
+                entry_point: self.vertex_main,
+                buffers: &self.vertex_buffer[..],
             },
             fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: "fs_main",
+                module: &self.shader,
+                entry_point: self.fragment_main,
                 targets: &[Some(wgpu::ColorTargetState {
-                    format: render_pipeline_creator.config.format,
+                    format: self.state.config.format,
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],

@@ -1,5 +1,5 @@
 use bytemuck::Pod;
-use wgpu::{Buffer, BufferUsages, Device};
+use wgpu::{Buffer, BufferSlice, BufferUsages, Device};
 use wgpu::util::DeviceExt;
 
 pub struct BufferCreator<'a, T: Pod> {
@@ -7,7 +7,7 @@ pub struct BufferCreator<'a, T: Pod> {
     device: &'a Device,
     usage: BufferUsages,
 
-    label: Option<&'a str>,
+    label: &'a str,
 }
 
 impl<'a> BufferCreator<'a, i32> {
@@ -16,7 +16,7 @@ impl<'a> BufferCreator<'a, i32> {
             data: vec![],
             device,
             usage: BufferUsages::INDEX,
-            label: None,
+            label: "Indices Buffer",
         }
     }
 }
@@ -27,25 +27,47 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
             data: vec![],
             device,
             usage: BufferUsages::VERTEX,
-            label: None,
+            label: "Vertex Buffer",
         }
     }
 
-    pub fn set_data(&mut self, data: Vec<T>) {
+    pub fn label(mut self, label: &'a str) -> Self {
+        self.label = label;
+
+        self
+    }
+
+    pub fn data(mut self, data: Vec<T>) ->  Self {
         self.data = data;
+        self
     }
 
-    pub fn size(&self) -> usize {
-        self.data.len()
+    pub fn build(&self) -> SimpleBuffer {
+        SimpleBuffer {
+            buffer: self.device.create_buffer_init(
+                &wgpu::util::BufferInitDescriptor {
+                    label: Some(self.label),
+                    contents: bytemuck::cast_slice(&self.data),
+                    usage: self.usage,
+                }
+            ),
+
+            size: self.data.len() as u32,
+        }
+    }
+}
+
+pub struct SimpleBuffer {
+    buffer: Buffer,
+    size: u32,
+}
+
+impl SimpleBuffer {
+    pub fn size(&self) -> u32 {
+        self.size
     }
 
-    pub fn generate_buffer(&self) -> Buffer {
-        self.device.create_buffer_init(
-            &wgpu::util::BufferInitDescriptor {
-                label: self.label,
-                contents: bytemuck::cast_slice(&self.data),
-                usage: self.usage,
-            }
-        )
+    pub fn slice(&self) -> BufferSlice {
+        self.buffer.slice(..)
     }
 }
