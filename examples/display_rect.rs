@@ -1,6 +1,7 @@
-use wgpu::{CommandEncoder, RenderPass, RenderPipeline, TextureView, VertexAttribute};
+use std::iter::once;
+use wgpu::{Color, CommandEncoder, RenderPass, RenderPipeline, TextureView, VertexAttribute};
 
-use wgpu_noboiler::{App, State};
+use wgpu_noboiler::app::{AppCreator, AppData};
 use wgpu_noboiler::buffer::BufferCreator;
 use wgpu_noboiler::render_pass::RenderPassCreator;
 use wgpu_noboiler::render_pipeline::RenderPipelineCreator;
@@ -18,28 +19,30 @@ impl Vertex<2> for ColoredVertex {
 }
 
 fn main() {
-    App::new()
-        .init_render_pipeline(render_pipeline)
+    AppCreator::new(())
+        .init_render_pipeline(init_render_pipeline)
         .render(render)
         .run();
 }
 
-fn render(state: &State, mut encoder: CommandEncoder, view: TextureView) {
-    let vertex_buffer = BufferCreator::vertex(&state.device)
+fn render(app_data: &AppData, _: &(), mut encoder: CommandEncoder, view: TextureView) {
+    let vertex_buffer = BufferCreator::vertex(&app_data.device)
         .data(vec![
-            ColoredVertex { position: [-0.5, 0.5, 0.0], color: [0.5, 0.0, 0.5] },
-            ColoredVertex { position: [-0.5, -0.5, 0.0], color: [0.5, 0.0, 0.5] },
-            ColoredVertex { position: [0.5, 0.5, 0.0], color: [0.5, 0.0, 0.5] },
-            ColoredVertex { position: [0.5, -0.5, 0.0], color: [0.5, 0.0, 0.5] },
+            ColoredVertex { position: [-0.5, 0.5, 0.0], color: [0.2, 0.0, 0.3] },
+            ColoredVertex { position: [-0.5, -0.5, 0.0], color: [0.2, 0.0, 0.3] },
+            ColoredVertex { position: [0.5, 0.5, 0.0], color: [0.2, 0.0, 0.3] },
+            ColoredVertex { position: [0.5, -0.5, 0.0], color: [0.2, 0.0, 0.3] },
         ]).build();
 
-    let indices_buffer = BufferCreator::indices(&state.device)
+    let indices_buffer = BufferCreator::indices(&app_data.device)
         .data(vec![0, 1, 2, 2, 1, 3]).build();
 
     {
-        let mut render_pass: RenderPass = RenderPassCreator::new(&mut encoder, &view).build();
+        let mut render_pass: RenderPass = RenderPassCreator::new(&mut encoder, &view)
+            .clear_color(Color::BLACK)
+            .build();
 
-        render_pass.set_pipeline(state.render_pipelines.get(0).unwrap());
+        render_pass.set_pipeline(app_data.render_pipelines.get(0).unwrap());
 
         render_pass.set_vertex_buffer(0, vertex_buffer.slice());
         render_pass.set_index_buffer(indices_buffer.slice(), wgpu::IndexFormat::Uint32);
@@ -47,11 +50,11 @@ fn render(state: &State, mut encoder: CommandEncoder, view: TextureView) {
         render_pass.draw_indexed(0..indices_buffer.size(), 0, 0..1);
     }
 
-    state.queue.submit(std::iter::once(encoder.finish()));
+    app_data.queue.submit(once(encoder.finish()));
 }
 
-fn render_pipeline(state: &State, vec: &mut Vec<RenderPipeline>) {
-    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shader.wgsl", state)
+fn init_render_pipeline(app_data: &AppData, vec: &mut Vec<RenderPipeline>) {
+    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderBasicColor.wgsl", app_data)
         .add_vertex_buffer(ColoredVertex::descriptor())
         .build();
 

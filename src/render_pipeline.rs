@@ -1,12 +1,14 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{RenderPipeline, ShaderModule, VertexBufferLayout};
+use wgpu::{Device, RenderPipeline, ShaderModule, TextureFormat, VertexBufferLayout};
 
-use crate::State;
+use crate::app::AppData;
 
+/// Builder Patter for wgpu renderPipeline
 pub struct RenderPipelineCreator<'a> {
-    state: &'a State,
+    device: &'a Device,
+    format: &'a TextureFormat,
 
     shader: ShaderModule,
     vertex_main: &'a str,
@@ -18,16 +20,17 @@ pub struct RenderPipelineCreator<'a> {
 }
 
 impl<'a> RenderPipelineCreator<'a> {
-    pub fn from_shader_file(path: &'a str, state: &'a State) -> RenderPipelineCreator<'a> {
-        let string = fs::read_to_string(path).expect("TODO: panic message");
+    pub fn from_shader_file(path: &'a str, app_data: &'a AppData) -> RenderPipelineCreator<'a> {
+        let shader_code = fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path));
 
-        let shader = state.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        let shader = app_data.device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("Render Pipeline Shader"),
-            source: wgpu::ShaderSource::Wgsl(Cow::from(string)),
+            source: wgpu::ShaderSource::Wgsl(Cow::from(shader_code)),
         });
 
         RenderPipelineCreator {
-            state,
+            device: &app_data.device,
+            format: &app_data.config.format,
             shader,
             vertex_main: "vs_main",
             fragment_main: "fs_main",
@@ -55,13 +58,13 @@ impl<'a> RenderPipelineCreator<'a> {
     }
 
     pub fn build(&self) -> RenderPipeline {
-        let render_pipeline_layout = self.state.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let render_pipeline_layout = self.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some(&(self.label.to_owned() + " Layout")),
             bind_group_layouts: &[],
             push_constant_ranges: &[],
         });
 
-        self.state.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        self.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some(self.label),
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
@@ -73,7 +76,7 @@ impl<'a> RenderPipelineCreator<'a> {
                 module: &self.shader,
                 entry_point: self.fragment_main,
                 targets: &[Some(wgpu::ColorTargetState {
-                    format: self.state.config.format,
+                    format: self.format.to_owned(),
                     blend: Some(wgpu::BlendState::REPLACE),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],

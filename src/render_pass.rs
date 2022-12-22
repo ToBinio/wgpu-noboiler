@@ -1,10 +1,12 @@
-use wgpu::{CommandEncoder, RenderPass, TextureView};
+use wgpu::{Color, CommandEncoder, RenderPass, TextureView};
 
 pub struct RenderPassCreator<'a> {
     encoder: &'a mut CommandEncoder,
     view: &'a TextureView,
 
     label: &'a str,
+
+    clear_color: Color,
 }
 
 impl<'a> RenderPassCreator<'a> {
@@ -13,11 +15,17 @@ impl<'a> RenderPassCreator<'a> {
             encoder,
             view,
             label: "Render Pass",
+            clear_color: Color::WHITE,
         }
     }
 
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
+        self
+    }
+
+    pub fn clear_color(mut self, clear_color: Color) -> Self {
+        self.clear_color = clear_color;
         self
     }
 
@@ -28,12 +36,7 @@ impl<'a> RenderPassCreator<'a> {
                 view: self.view,
                 resolve_target: None,
                 ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
-                    }),
+                    load: wgpu::LoadOp::Clear(self.clear_color),
                     store: true,
                 },
             })],

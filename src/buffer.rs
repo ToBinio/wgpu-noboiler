@@ -2,6 +2,7 @@ use bytemuck::Pod;
 use wgpu::{Buffer, BufferSlice, BufferUsages, Device};
 use wgpu::util::DeviceExt;
 
+/// Builder Patter for wgpu Buffer
 pub struct BufferCreator<'a, T: Pod> {
     data: Vec<T>,
     device: &'a Device,
@@ -11,6 +12,9 @@ pub struct BufferCreator<'a, T: Pod> {
 }
 
 impl<'a> BufferCreator<'a, i32> {
+    /// Helps to create indices-buffer
+    ///
+    /// IndexFormat: u32
     pub fn indices(device: &'a Device) -> BufferCreator<'a, i32> {
         BufferCreator {
             data: vec![],
@@ -22,6 +26,7 @@ impl<'a> BufferCreator<'a, i32> {
 }
 
 impl<'a, T: Pod> BufferCreator<'a, T> {
+    /// Helps to create vertex-buffer
     pub fn vertex(device: &'a Device) -> BufferCreator<'a, T> {
         BufferCreator {
             data: vec![],
@@ -31,17 +36,29 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
         }
     }
 
+    /// sets buffer Label (name of the buffer)
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
 
         self
     }
 
-    pub fn data(mut self, data: Vec<T>) ->  Self {
+    /// sets data of the Buffer
+    ///
+    /// overwrites data which was stored before
+    pub fn data(mut self, data: Vec<T>) -> Self {
         self.data = data;
         self
     }
 
+    /// push data to current dataVec
+    pub fn add_data(&mut self, data: T) -> &mut Self {
+        self.data.push(data);
+
+        self
+    }
+
+    /// creates SimpleBuffer
     pub fn build(&self) -> SimpleBuffer {
         SimpleBuffer {
             buffer: self.device.create_buffer_init(
@@ -57,6 +74,7 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
     }
 }
 
+/// wrapper for Buffer which stores count of elements
 pub struct SimpleBuffer {
     buffer: Buffer,
     size: u32,
