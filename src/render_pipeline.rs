@@ -5,7 +5,7 @@ use wgpu::{Device, RenderPipeline, ShaderModule, TextureFormat, VertexBufferLayo
 
 use crate::app::AppData;
 
-/// Builder Patter for wgpu renderPipeline
+/// Builder Patter for wgpu [RenderPipeline]
 pub struct RenderPipelineCreator<'a> {
     device: &'a Device,
     format: &'a TextureFormat,
@@ -14,12 +14,13 @@ pub struct RenderPipelineCreator<'a> {
     vertex_main: &'a str,
     fragment_main: &'a str,
 
-    vertex_buffer: Vec<VertexBufferLayout<'a>>,
+    vertex_buffers: Vec<VertexBufferLayout<'a>>,
 
     label: &'a str,
 }
 
 impl<'a> RenderPipelineCreator<'a> {
+    /// creates an [RenderPipelineCreator] where the shader is from the path
     pub fn from_shader_file(path: &'a str, app_data: &'a AppData) -> RenderPipelineCreator<'a> {
         let shader_code = fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path));
 
@@ -35,28 +36,32 @@ impl<'a> RenderPipelineCreator<'a> {
             vertex_main: "vs_main",
             fragment_main: "fs_main",
 
-            vertex_buffer: vec![],
+            vertex_buffers: vec![],
 
             label: "Render Pipeline",
         }
     }
 
+    /// adds a [VertexBufferLayout] to the used list
     pub fn add_vertex_buffer(mut self, buffer: VertexBufferLayout<'a>) -> Self {
-        self.vertex_buffer.push(buffer);
+        self.vertex_buffers.push(buffer);
 
         self
     }
 
+    /// sets the name of the Fragment-Main
     pub fn fragment_main(mut self, fn_name: &'a str) -> Self {
         self.fragment_main = fn_name;
         self
     }
 
+    /// sets the name of the Vertex-Main
     pub fn vertex_main(mut self, fn_name: &'a str) -> Self {
         self.vertex_main = fn_name;
         self
     }
 
+    /// creates a [RenderPipeline]
     pub fn build(&self) -> RenderPipeline {
         let render_pipeline_layout = self.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some(&(self.label.to_owned() + " Layout")),
@@ -70,7 +75,7 @@ impl<'a> RenderPipelineCreator<'a> {
             vertex: wgpu::VertexState {
                 module: &self.shader,
                 entry_point: self.vertex_main,
-                buffers: &self.vertex_buffer[..],
+                buffers: &self.vertex_buffers[..],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &self.shader,

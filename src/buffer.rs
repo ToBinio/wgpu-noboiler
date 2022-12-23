@@ -2,7 +2,7 @@ use bytemuck::Pod;
 use wgpu::{Buffer, BufferSlice, BufferUsages, Device};
 use wgpu::util::DeviceExt;
 
-/// Builder Patter for wgpu Buffer
+/// Builder Patter for wgpu [Buffer]
 pub struct BufferCreator<'a, T: Pod> {
     data: Vec<T>,
     device: &'a Device,
@@ -36,14 +36,14 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
         }
     }
 
-    /// sets buffer Label (name of the buffer)
+    /// sets Label (name of the buffer)
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
 
         self
     }
 
-    /// sets data of the Buffer
+    /// sets data
     ///
     /// overwrites data which was stored before
     pub fn data(mut self, data: Vec<T>) -> Self {
@@ -74,7 +74,7 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
     }
 }
 
-/// wrapper for Buffer which stores count of elements
+/// wrapper for [Buffer] which stores count of elements
 pub struct SimpleBuffer {
     buffer: Buffer,
     size: u32,

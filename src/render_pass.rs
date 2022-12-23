@@ -1,5 +1,6 @@
 use wgpu::{Color, CommandEncoder, RenderPass, TextureView};
 
+/// Builder Patter for wgpu [RenderPass]
 pub struct RenderPassCreator<'a> {
     encoder: &'a mut CommandEncoder,
     view: &'a TextureView,
@@ -19,16 +20,19 @@ impl<'a> RenderPassCreator<'a> {
         }
     }
 
+    /// sets label (name)
     pub fn label(mut self, label: &'a str) -> Self {
         self.label = label;
         self
     }
 
+    /// sets clear_color (background color)
     pub fn clear_color(mut self, clear_color: Color) -> Self {
         self.clear_color = clear_color;
         self
     }
 
+    /// creates a [RenderPass]
     pub fn build(self) -> RenderPass<'a> {
         self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some(self.label),
