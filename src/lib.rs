@@ -9,3 +9,5 @@ pub mod render_pass;
 pub mod buffer;
 pub mod vertex;
 pub mod app;
+
+extern crate core;

@@ -6,7 +6,6 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
-extern crate core;
 
 pub struct App<T: 'static> {
     state: T,
@@ -209,7 +208,7 @@ impl<T: 'static> AppCreator<T> {
 
     /// gets called on before opening the window
     ///
-    /// here you can create your [RenderPipelines](RenderPipeline) (may with the help of [RenderPipelineCreator])
+    /// here you can create your [RenderPipelines](RenderPipeline)
     pub fn init_render_pipeline(mut self, render_pipeline: InitRenderPipelineFn) -> Self {
         self.init_render_pipeline_fn = Some(render_pipeline);
         self
