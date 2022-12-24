@@ -9,6 +9,8 @@ categories = ["Graphics"]
 exclude = [
     "/.idea"
 ]
+repository = "https://github.com/ToBinio/wgpu-noboiler"
+keywords = ["graphics", "boiler", "noboiler", "boilerplate", "wgpu"]
 
 [dependencies]
 winit = "0.27"
