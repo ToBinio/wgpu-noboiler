@@ -1,6 +1,6 @@
 [package]
 name = "wgpu-noboiler"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["ToBinio"]
 edition = "2021"
 license = "MIT"
