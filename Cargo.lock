@@ -1609,7 +1609,7 @@ dependencies = [
 
 [[package]]
 name = "wgpu-noboiler"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "bytemuck",
  "env_logger",
