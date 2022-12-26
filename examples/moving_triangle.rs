@@ -39,7 +39,7 @@ fn main() {
         .run()
 }
 
-fn render(app_data: &AppData, state: &State, mut encoder: CommandEncoder, view: TextureView) {
+fn render(app_data: &AppData, state: &mut State, mut encoder: CommandEncoder, view: TextureView) {
     let vertex_buffer = BufferCreator::vertex(&app_data.device)
         .data(vec![
             ColoredPosVertex { position: [(0.0 + state.pos.0) * state.x_scale, TRIANGLE_SIZE + state.pos.1] },

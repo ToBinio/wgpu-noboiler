@@ -61,7 +61,7 @@ impl<T: 'static> App<T> {
         self.app_data.render_pipelines = render_pipelines
     }
 
-    fn render(&self) -> Result<(), SurfaceError> {
+    fn render(&mut self) -> Result<(), SurfaceError> {
         if self.render_fn.is_none() {
             return Ok(());
         }
@@ -72,7 +72,7 @@ impl<T: 'static> App<T> {
             label: Some("Render Encoder"),
         });
 
-        self.render_fn.unwrap()(&self.app_data, &self.state, encoder, view);
+        self.render_fn.unwrap()(&self.app_data, &mut self.state, encoder, view);
 
         output.present();
 
@@ -297,6 +297,6 @@ pub type ResizeFn<T> = fn(app_data: &AppData, state: &mut T, size: &PhysicalSize
 
 pub type UpdateFn<T> = fn(app_data: &AppData, state: &mut T);
 
-pub type RenderFn<T> = fn(app_data: &AppData, state: &T, command_encoder: CommandEncoder, texture_view: TextureView);
+pub type RenderFn<T> = fn(app_data: &AppData, state: &mut T, command_encoder: CommandEncoder, texture_view: TextureView);
 
 pub type InitRenderPipelineFn = fn(app: &AppData, render_pipelines: &mut Vec<RenderPipeline>);
