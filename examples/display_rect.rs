@@ -20,7 +20,7 @@ impl Vertex<2> for ColoredVertex {
 
 fn main() {
     AppCreator::new(())
-        .init_render_pipeline(init_render_pipeline)
+        .init(init)
         .render(render)
         .run();
 }
@@ -53,7 +53,7 @@ fn render(app_data: &AppData, _: &mut (), mut encoder: CommandEncoder, view: Tex
     app_data.queue.submit(once(encoder.finish()));
 }
 
-fn init_render_pipeline(app_data: &AppData, vec: &mut Vec<RenderPipeline>) {
+fn init(app_data: &AppData, _state: &mut (), vec: &mut Vec<RenderPipeline>) {
     let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderBasicColor.wgsl", app_data)
         .add_vertex_buffer(ColoredVertex::descriptor())
         .build();

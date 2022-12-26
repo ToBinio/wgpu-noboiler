@@ -1,4 +1,3 @@
-
 use std::time::{Instant};
 use wgpu::{Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
 use winit::dpi::PhysicalSize;
@@ -15,7 +14,7 @@ pub struct App<T: 'static> {
     resize_fn: Option<ResizeFn<T>>,
     update_fn: Option<UpdateFn<T>>,
     render_fn: Option<RenderFn<T>>,
-    init_render_pipeline_fn: Option<InitRenderPipelineFn>,
+    init_fn: Option<InitFn<T>>,
 }
 
 /// background data for your [App]
@@ -53,11 +52,11 @@ impl<T: 'static> App<T> {
         }
     }
 
-    fn create_render_pipeline(&mut self) {
-        if self.init_render_pipeline_fn.is_none() { return; }
+    fn init(&mut self) {
+        if self.init_fn.is_none() { return; }
 
         let mut render_pipelines = Vec::new();
-        self.init_render_pipeline_fn.unwrap()(&self.app_data, &mut render_pipelines);
+        self.init_fn.unwrap()(&self.app_data, &mut self.state, &mut render_pipelines);
         self.app_data.render_pipelines = render_pipelines
     }
 
@@ -80,7 +79,7 @@ impl<T: 'static> App<T> {
     }
 
     fn run(mut self, window: Window, event_loop: EventLoop<()>) {
-        self.create_render_pipeline();
+        self.init();
 
         event_loop.run(move |event, _, control_flow| {
             match event {
@@ -145,7 +144,7 @@ pub struct AppCreator<T: 'static> {
     resize_fn: Option<ResizeFn<T>>,
     update_fn: Option<UpdateFn<T>>,
     render_fn: Option<RenderFn<T>>,
-    init_render_pipeline_fn: Option<InitRenderPipelineFn>,
+    init_fn: Option<InitFn<T>>,
 
     present_mode: PresentMode,
 }
@@ -170,7 +169,7 @@ impl<T: 'static> AppCreator<T> {
             resize_fn: None,
             update_fn: None,
             render_fn: None,
-            init_render_pipeline_fn: None,
+            init_fn: None,
 
             present_mode: PresentMode::Fifo,
         }
@@ -206,11 +205,11 @@ impl<T: 'static> AppCreator<T> {
         self
     }
 
-    /// gets called on before opening the window
+    /// gets called before opening the window
     ///
-    /// here you can create your [RenderPipelines](RenderPipeline)
-    pub fn init_render_pipeline(mut self, render_pipeline: InitRenderPipelineFn) -> Self {
-        self.init_render_pipeline_fn = Some(render_pipeline);
+    /// mainly used to create your [RenderPipelines](RenderPipeline)
+    pub fn init(mut self, init: InitFn<T>) -> Self {
+        self.init_fn = Some(init);
         self
     }
 
@@ -284,7 +283,7 @@ impl<T: 'static> AppCreator<T> {
             resize_fn: self.resize_fn,
             update_fn: self.update_fn,
             render_fn: self.render_fn,
-            init_render_pipeline_fn: self.init_render_pipeline_fn,
+            init_fn: self.init_fn,
         };
 
         app.run(self.window, self.event_loop);
@@ -299,4 +298,4 @@ pub type UpdateFn<T> = fn(app_data: &AppData, state: &mut T);
 
 pub type RenderFn<T> = fn(app_data: &AppData, state: &mut T, command_encoder: CommandEncoder, texture_view: TextureView);
 
-pub type InitRenderPipelineFn = fn(app: &AppData, render_pipelines: &mut Vec<RenderPipeline>);
+pub type InitFn<T> = fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);

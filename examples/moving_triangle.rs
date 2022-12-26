@@ -31,7 +31,7 @@ fn main() {
         vel: (0.707, 0.707),
         x_scale: 9.0 / 16.0,
     })
-        .init_render_pipeline(init_render_pipeline)
+        .init(init)
         .render(render)
         .update(update)
         .resize(resize)
@@ -76,7 +76,7 @@ fn resize(_: &AppData, state: &mut State, size: &PhysicalSize<u32>) {
     state.x_scale = size.height as f32 / size.width as f32;
 }
 
-fn init_render_pipeline(app_data: &AppData, vec: &mut Vec<RenderPipeline>) {
+fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
     let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderColorFromPos.wgsl", app_data)
         .add_vertex_buffer(ColoredPosVertex::descriptor())
         .build();
