@@ -1,4 +1,4 @@
-use wgpu::{Color, CommandEncoder, RenderPass, TextureView};
+use wgpu::{Color, CommandEncoder, LoadOp, Operations, RenderPass, RenderPassColorAttachment, RenderPassDescriptor, TextureView};
 
 /// Builder Patter for wgpu [RenderPass]
 pub struct RenderPassCreator<'a> {
@@ -34,17 +34,18 @@ impl<'a> RenderPassCreator<'a> {
 
     /// creates a [RenderPass]
     pub fn build(self) -> RenderPass<'a> {
-        self.encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        self.encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some(self.label),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            color_attachments: &[Some(RenderPassColorAttachment {
                 view: self.view,
                 resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(self.clear_color),
+                ops: Operations {
+                    load: LoadOp::Clear(self.clear_color),
                     store: true,
                 },
             })],
             depth_stencil_attachment: None,
         })
+
     }
 }

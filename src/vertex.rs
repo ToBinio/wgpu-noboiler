@@ -1,13 +1,13 @@
 use std::mem;
 
-use wgpu::VertexAttribute;
+use wgpu::{BufferAddress, VertexAttribute, VertexBufferLayout, VertexStepMode};
 
 pub trait Vertex<const SIZE: usize> {
 
-    fn descriptor<'a>() -> wgpu::VertexBufferLayout<'a> where Self: Sized {
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
+    fn descriptor<'a>() -> VertexBufferLayout<'a> where Self: Sized {
+        VertexBufferLayout {
+            array_stride: mem::size_of::<Self>() as BufferAddress,
+            step_mode: VertexStepMode::Vertex,
             attributes: &Self::ATTRIBS,
         }
     }

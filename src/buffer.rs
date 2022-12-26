@@ -1,6 +1,6 @@
 use bytemuck::Pod;
 use wgpu::{Buffer, BufferSlice, BufferUsages, Device};
-use wgpu::util::DeviceExt;
+use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
 /// Builder Patter for wgpu [Buffer]
 pub struct BufferCreator<'a, T: Pod> {
@@ -62,7 +62,7 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
     pub fn build(&self) -> SimpleBuffer {
         SimpleBuffer {
             buffer: self.device.create_buffer_init(
-                &wgpu::util::BufferInitDescriptor {
+                &BufferInitDescriptor {
                     label: Some(self.label),
                     contents: bytemuck::cast_slice(&self.data),
                     usage: self.usage,

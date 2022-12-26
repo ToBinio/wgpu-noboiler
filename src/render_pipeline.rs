@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{Device, RenderPipeline, ShaderModule, TextureFormat, VertexBufferLayout};
+use wgpu::{BlendState, ColorTargetState, ColorWrites, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
 
 use crate::app::AppData;
 
@@ -24,9 +24,9 @@ impl<'a> RenderPipelineCreator<'a> {
     pub fn from_shader_file(path: &'a str, app_data: &'a AppData) -> RenderPipelineCreator<'a> {
         let shader_code = fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path));
 
-        let shader = app_data.device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        let shader = app_data.device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Render Pipeline Shader"),
-            source: wgpu::ShaderSource::Wgsl(Cow::from(shader_code)),
+            source: ShaderSource::Wgsl(Cow::from(shader_code)),
         });
 
         RenderPipelineCreator {
@@ -63,40 +63,40 @@ impl<'a> RenderPipelineCreator<'a> {
 
     /// creates a [RenderPipeline]
     pub fn build(&self) -> RenderPipeline {
-        let render_pipeline_layout = self.device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        let render_pipeline_layout = self.device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some(&(self.label.to_owned() + " Layout")),
             bind_group_layouts: &[],
             push_constant_ranges: &[],
         });
 
-        self.device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        self.device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some(self.label),
             layout: Some(&render_pipeline_layout),
-            vertex: wgpu::VertexState {
+            vertex: VertexState {
                 module: &self.shader,
                 entry_point: self.vertex_main,
                 buffers: &self.vertex_buffers[..],
             },
-            fragment: Some(wgpu::FragmentState {
+            fragment: Some(FragmentState {
                 module: &self.shader,
                 entry_point: self.fragment_main,
-                targets: &[Some(wgpu::ColorTargetState {
+                targets: &[Some(ColorTargetState {
                     format: self.format.to_owned(),
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrites::ALL,
+                    blend: Some(BlendState::REPLACE),
+                    write_mask: ColorWrites::ALL,
                 })],
             }),
-            primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleList,
+            primitive: PrimitiveState {
+                topology: PrimitiveTopology::TriangleList,
                 strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
-                polygon_mode: wgpu::PolygonMode::Fill,
+                front_face: FrontFace::Ccw,
+                cull_mode: Some(Face::Back),
+                polygon_mode: PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
             },
             depth_stencil: None,
-            multisample: wgpu::MultisampleState {
+            multisample: MultisampleState {
                 count: 1,
                 mask: !0,
                 alpha_to_coverage_enabled: false,

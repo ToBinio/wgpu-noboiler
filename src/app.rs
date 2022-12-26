@@ -1,6 +1,6 @@
 
 use std::time::{Instant};
-use wgpu::{CommandEncoder, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView};
+use wgpu::{Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -67,8 +67,8 @@ impl<T: 'static> App<T> {
         }
 
         let output = self.app_data.surface.get_current_texture()?;
-        let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let encoder = self.app_data.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        let view = output.texture.create_view(&TextureViewDescriptor::default());
+        let encoder = self.app_data.device.create_command_encoder(&CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });
 
@@ -224,11 +224,11 @@ impl<T: 'static> AppCreator<T> {
         env_logger::init();
         let size = self.window.inner_size();
 
-        let instance = Instance::new(wgpu::Backends::all());
+        let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(&self.window) };
 
         let adapter = pollster::block_on(instance.request_adapter(
-            &wgpu::RequestAdapterOptions {
+            &RequestAdapterOptions {
                 power_preference: PowerPreference::default(),
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
