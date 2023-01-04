@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{BlendState, ColorTargetState, ColorWrites, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
+use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
 
 use crate::app::AppData;
 
@@ -15,6 +15,7 @@ pub struct RenderPipelineCreator<'a> {
     fragment_main: &'a str,
 
     vertex_buffers: Vec<VertexBufferLayout<'a>>,
+    bind_groups: Vec<&'a BindGroupLayout>,
 
     label: &'a str,
 }
@@ -37,14 +38,22 @@ impl<'a> RenderPipelineCreator<'a> {
             fragment_main: "fs_main",
 
             vertex_buffers: vec![],
+            bind_groups: vec![],
 
             label: "Render Pipeline",
         }
     }
 
     /// adds a [VertexBufferLayout] to the used list
-    pub fn add_vertex_buffer(mut self, buffer: VertexBufferLayout<'a>) -> Self {
-        self.vertex_buffers.push(buffer);
+    pub fn add_vertex_buffer(mut self, layout: VertexBufferLayout<'a>) -> Self {
+        self.vertex_buffers.push(layout);
+
+        self
+    }
+
+    /// adds a [BindGroupLayout] to the used list
+    pub fn add_bind_group(mut self, layout: &'a BindGroupLayout) -> Self {
+        self.bind_groups.push(layout);
 
         self
     }
@@ -65,7 +74,7 @@ impl<'a> RenderPipelineCreator<'a> {
     pub fn build(&self) -> RenderPipeline {
         let render_pipeline_layout = self.device.create_pipeline_layout(&PipelineLayoutDescriptor {
             label: Some(&(self.label.to_owned() + " Layout")),
-            bind_group_layouts: &[],
+            bind_group_layouts: &self.bind_groups[..],
             push_constant_ranges: &[],
         });
 
