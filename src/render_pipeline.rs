@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
+use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
 
 use crate::app::AppData;
 
@@ -16,6 +16,8 @@ pub struct RenderPipelineCreator<'a> {
 
     vertex_buffers: Vec<VertexBufferLayout<'a>>,
     bind_groups: Vec<&'a BindGroupLayout>,
+
+    depth_stencil: Option<DepthStencilState>,
 
     label: &'a str,
 }
@@ -39,6 +41,8 @@ impl<'a> RenderPipelineCreator<'a> {
 
             vertex_buffers: vec![],
             bind_groups: vec![],
+
+            depth_stencil: None,
 
             label: "Render Pipeline",
         }
@@ -67,6 +71,12 @@ impl<'a> RenderPipelineCreator<'a> {
     /// sets the name of the Vertex-Main
     pub fn vertex_main(mut self, fn_name: &'a str) -> Self {
         self.vertex_main = fn_name;
+        self
+    }
+
+    /// sets the used [DepthStencilState]
+    pub fn depth_stencil(mut self, depth_stencil: DepthStencilState) -> Self {
+        self.depth_stencil = Some(depth_stencil);
         self
     }
 
@@ -104,7 +114,7 @@ impl<'a> RenderPipelineCreator<'a> {
                 unclipped_depth: false,
                 conservative: false,
             },
-            depth_stencil: None,
+            depth_stencil: self.depth_stencil.to_owned(),
             multisample: MultisampleState {
                 count: 1,
                 mask: !0,

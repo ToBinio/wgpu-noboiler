@@ -1,6 +1,8 @@
 use std::iter::once;
+
 use wgpu::{CommandEncoder, PresentMode, RenderPipeline, TextureView, VertexAttribute};
 use winit::dpi::PhysicalSize;
+
 use wgpu_noboiler::app::{AppCreator, AppData};
 use wgpu_noboiler::buffer::BufferCreator;
 use wgpu_noboiler::render_pass::RenderPassCreator;
