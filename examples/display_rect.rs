@@ -27,6 +27,7 @@ fn main() {
 }
 
 fn render(app_data: &AppData, _: &mut (), mut encoder: CommandEncoder, view: TextureView) {
+
     let vertex_buffer = BufferCreator::vertex(&app_data.device)
         .data(vec![
             ColoredVertex { position: [-0.5, 0.5, 0.0], color: [0.2, 0.0, 0.3] },

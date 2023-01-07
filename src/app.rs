@@ -1,10 +1,10 @@
-use std::time::{Instant};
+use std::time::Instant;
+
 use wgpu::{Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
-
 
 pub struct App<T: 'static> {
     state: T,
@@ -80,6 +80,8 @@ impl<T: 'static> App<T> {
 
     fn run(mut self, window: Window, event_loop: EventLoop<()>) {
         self.init();
+
+        window.set_visible(true);
 
         event_loop.run(move |event, _, control_flow| {
             match event {
@@ -158,7 +160,10 @@ impl<T: 'static> AppCreator<T> {
     ///
     pub fn new(state: T) -> AppCreator<T> {
         let event_loop = EventLoop::new();
-        let window = WindowBuilder::new().build(&event_loop).unwrap();
+        let window = WindowBuilder::new()
+            .with_visible(false)
+            .build(&event_loop)
+            .unwrap();
 
         AppCreator {
             state,
