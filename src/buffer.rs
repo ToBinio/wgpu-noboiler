@@ -51,9 +51,16 @@ impl<'a, T: Pod> BufferCreator<'a, T> {
         self
     }
 
-    /// push data to current dataVec
+    /// [push](Vec::push) data to current dataVec
     pub fn add_data(&mut self, data: T) -> &mut Self {
         self.data.push(data);
+
+        self
+    }
+
+    /// [appends](Vec::append) data to current dataVec
+    pub fn append_data(&mut self, data: &mut Vec<T>) -> &mut Self {
+        self.data.append(data);
 
         self
     }

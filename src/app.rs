@@ -34,7 +34,7 @@ pub struct AppData {
 
     pub size: PhysicalSize<u32>,
 
-    ///vec of all RenderPipelines which got [created](AppCreator::init_render_pipeline)
+    ///vec of all RenderPipelines which got [created](AppCreator::init)
     pub render_pipelines: Vec<RenderPipeline>,
 }
 
