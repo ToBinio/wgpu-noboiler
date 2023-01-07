@@ -1,9 +1,7 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, TextureFormat, VertexBufferLayout, VertexState};
-
-use crate::app::AppData;
+use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, SurfaceConfiguration, TextureFormat, VertexBufferLayout, VertexState};
 
 /// Builder Patter for wgpu [RenderPipeline]
 pub struct RenderPipelineCreator<'a> {
@@ -26,17 +24,20 @@ pub struct RenderPipelineCreator<'a> {
 
 impl<'a> RenderPipelineCreator<'a> {
     /// creates an [RenderPipelineCreator] where the shader is from the path
-    pub fn from_shader_file(path: &'a str, app_data: &'a AppData) -> RenderPipelineCreator<'a> {
-        let shader_code = fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path));
+    pub fn from_shader_file(path: &'a str, device: &'a Device, config: &'a SurfaceConfiguration) -> RenderPipelineCreator<'a> {
+        Self::from_shader_code(&fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path)), device, config)
+    }
 
-        let shader = app_data.device.create_shader_module(ShaderModuleDescriptor {
+    /// creates an [RenderPipelineCreator] where the shader is based on the given code
+    pub fn from_shader_code(shader_code: &str, device: &'a Device, config: &'a SurfaceConfiguration) -> RenderPipelineCreator<'a> {
+        let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Render Pipeline Shader"),
             source: ShaderSource::Wgsl(Cow::from(shader_code)),
         });
 
         RenderPipelineCreator {
-            device: &app_data.device,
-            format: &app_data.config.format,
+            device,
+            format: &config.format,
             shader,
             vertex_main: "vs_main",
             fragment_main: "fs_main",

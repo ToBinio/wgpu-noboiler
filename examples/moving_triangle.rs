@@ -79,7 +79,7 @@ fn resize(_: &AppData, state: &mut State, size: &PhysicalSize<u32>) {
 }
 
 fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
-    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderColorFromPos.wgsl", app_data)
+    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderColorFromPos.wgsl", &app_data.device, &app_data.config)
         .add_vertex_buffer(ColoredPosVertex::descriptor())
         .build();
 
