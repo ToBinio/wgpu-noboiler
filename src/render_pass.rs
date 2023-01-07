@@ -2,7 +2,6 @@ use wgpu::{Color, CommandEncoder, LoadOp, Operations, RenderPass, RenderPassColo
 
 /// Builder Patter for wgpu [RenderPass]
 pub struct RenderPassCreator<'a> {
-    encoder: &'a mut CommandEncoder,
     view: &'a TextureView,
 
     label: &'a str,
@@ -10,16 +9,18 @@ pub struct RenderPassCreator<'a> {
     clear_color: Color,
 
     depth_stencil_attachment: Option<RenderPassDepthStencilAttachment<'a>>,
+
+    color_attachments: Vec<Option<RenderPassColorAttachment<'a>>>,
 }
 
 impl<'a> RenderPassCreator<'a> {
-    pub fn new(encoder: &'a mut CommandEncoder, view: &'a TextureView) -> RenderPassCreator<'a> {
+    pub fn new(view: &'a TextureView) -> RenderPassCreator<'a> {
         RenderPassCreator {
-            encoder,
             view,
             label: "Render Pass",
             clear_color: Color::WHITE,
             depth_stencil_attachment: None,
+            color_attachments: vec![],
         }
     }
 
@@ -42,18 +43,40 @@ impl<'a> RenderPassCreator<'a> {
     }
 
     /// creates a [RenderPass]
-    pub fn build(self) -> RenderPass<'a> {
-        self.encoder.begin_render_pass(&RenderPassDescriptor {
+    pub fn build(mut self, encoder: &'a mut CommandEncoder) -> RenderPass<'a> {
+        self.color_attachments.push(Some(RenderPassColorAttachment {
+            view: self.view,
+            resolve_target: None,
+            ops: Operations {
+                load: LoadOp::Clear(self.clear_color),
+                store: true,
+            },
+        }));
+
+        let descriptor = RenderPassDescriptor {
             label: Some(self.label),
-            color_attachments: &[Some(RenderPassColorAttachment {
-                view: self.view,
-                resolve_target: None,
-                ops: Operations {
-                    load: LoadOp::Clear(self.clear_color),
-                    store: true,
-                },
-            })],
-            depth_stencil_attachment: self.depth_stencil_attachment,
-        })
+            color_attachments: &self.color_attachments,
+            depth_stencil_attachment: self.depth_stencil_attachment.clone(),
+        };
+
+        encoder.begin_render_pass(&descriptor)
+    }
+
+    /// returns the [RenderPassDescriptor]
+    pub fn descriptor(&'a mut self) -> RenderPassDescriptor<'a, 'a> {
+        self.color_attachments.push(Some(RenderPassColorAttachment {
+            view: self.view,
+            resolve_target: None,
+            ops: Operations {
+                load: LoadOp::Clear(self.clear_color),
+                store: true,
+            },
+        }));
+
+        RenderPassDescriptor {
+            label: Some(self.label),
+            color_attachments: &self.color_attachments,
+            depth_stencil_attachment: self.depth_stencil_attachment.clone(),
+        }
     }
 }

@@ -39,9 +39,9 @@ fn render(app_data: &AppData, _: &mut (), mut encoder: CommandEncoder, view: Tex
         .data(vec![0, 1, 2, 2, 1, 3]).build();
 
     {
-        let mut render_pass: RenderPass = RenderPassCreator::new(&mut encoder, &view)
+        let mut render_pass: RenderPass = RenderPassCreator::new(&view)
             .clear_color(Color::BLACK)
-            .build();
+            .build(&mut encoder);
 
         render_pass.set_pipeline(app_data.render_pipelines.get(0).unwrap());
 

@@ -50,7 +50,7 @@ fn render(app_data: &AppData, state: &mut State, mut encoder: CommandEncoder, vi
         ]).build();
 
     {
-        let mut render_pass = RenderPassCreator::new(&mut encoder, &view).build();
+        let mut render_pass = RenderPassCreator::new(&view).build(&mut encoder);
 
         render_pass.set_pipeline(app_data.render_pipelines.get(0).unwrap());
         render_pass.set_vertex_buffer(0, vertex_buffer.slice());
