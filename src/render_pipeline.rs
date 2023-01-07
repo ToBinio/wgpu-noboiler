@@ -20,6 +20,8 @@ pub struct RenderPipelineCreator<'a> {
     depth_stencil: Option<DepthStencilState>,
 
     label: &'a str,
+
+    blend_state: BlendState,
 }
 
 impl<'a> RenderPipelineCreator<'a> {
@@ -45,6 +47,7 @@ impl<'a> RenderPipelineCreator<'a> {
             depth_stencil: None,
 
             label: "Render Pipeline",
+            blend_state: BlendState::REPLACE,
         }
     }
 
@@ -80,6 +83,12 @@ impl<'a> RenderPipelineCreator<'a> {
         self
     }
 
+    /// sets the used [BlendState]
+    pub fn blend_state(mut self, blend_state: BlendState) -> Self {
+        self.blend_state = blend_state;
+        self
+    }
+
     /// creates a [RenderPipeline]
     pub fn build(&self) -> RenderPipeline {
         let render_pipeline_layout = self.device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -101,7 +110,7 @@ impl<'a> RenderPipelineCreator<'a> {
                 entry_point: self.fragment_main,
                 targets: &[Some(ColorTargetState {
                     format: self.format.to_owned(),
-                    blend: Some(BlendState::REPLACE),
+                    blend: Some(self.blend_state),
                     write_mask: ColorWrites::ALL,
                 })],
             }),
