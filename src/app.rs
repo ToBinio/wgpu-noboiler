@@ -224,16 +224,19 @@ impl<T: 'static> AppCreator<T> {
         self
     }
 
+    //todo doc
     pub fn title(self, title: &str) -> Self {
         self.window.set_title(title);
         self
     }
 
+    //todo doc
     pub fn resizable(self, resizable: bool) -> Self {
         self.window.set_resizable(resizable);
         self
     }
 
+    //todo doc
     pub fn get_window(&mut self) -> &mut Window {
         &mut self.window
     }
