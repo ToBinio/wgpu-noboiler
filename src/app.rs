@@ -224,6 +224,20 @@ impl<T: 'static> AppCreator<T> {
         self
     }
 
+    pub fn title(self, title: &str) -> Self {
+        self.window.set_title(title);
+        self
+    }
+
+    pub fn resizable(self, resizable: bool) -> Self {
+        self.window.set_resizable(resizable);
+        self
+    }
+
+    pub fn get_window(&mut self) -> &mut Window {
+        &mut self.window
+    }
+
     fn create_app_data(&self) -> AppData {
         env_logger::init();
         let size = self.window.inner_size();
