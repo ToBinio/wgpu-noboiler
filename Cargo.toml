@@ -5,7 +5,7 @@ authors = ["ToBinio"]
 edition = "2021"
 license = "MIT"
 description = "A simplified Api for wgpu and winit"
-categories = ["Graphics"]
+categories = ["graphics"]
 exclude = [
     "/.idea"
 ]
