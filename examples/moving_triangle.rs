@@ -33,21 +33,37 @@ fn main() {
         vel: (0.707, 0.707),
         x_scale: 9.0 / 16.0,
     })
-        .init(init)
-        .render(render)
-        .update(update)
-        .resize(resize)
-        .present_mode(PresentMode::Immediate)
-        .run()
+    .init(init)
+    .render(render)
+    .update(update)
+    .resize(resize)
+    .present_mode(PresentMode::Immediate)
+    .run()
 }
 
 fn render(app_data: &AppData, state: &mut State, mut encoder: CommandEncoder, view: TextureView) {
     let vertex_buffer = BufferCreator::vertex(&app_data.device)
         .data(vec![
-            ColoredPosVertex { position: [(0.0 + state.pos.0) * state.x_scale, TRIANGLE_SIZE + state.pos.1] },
-            ColoredPosVertex { position: [(-TRIANGLE_SIZE + state.pos.0) * state.x_scale, -TRIANGLE_SIZE + state.pos.1] },
-            ColoredPosVertex { position: [(TRIANGLE_SIZE + state.pos.0) * state.x_scale, -TRIANGLE_SIZE + state.pos.1] },
-        ]).build();
+            ColoredPosVertex {
+                position: [
+                    (0.0 + state.pos.0) * state.x_scale,
+                    TRIANGLE_SIZE + state.pos.1,
+                ],
+            },
+            ColoredPosVertex {
+                position: [
+                    (-TRIANGLE_SIZE + state.pos.0) * state.x_scale,
+                    -TRIANGLE_SIZE + state.pos.1,
+                ],
+            },
+            ColoredPosVertex {
+                position: [
+                    (TRIANGLE_SIZE + state.pos.0) * state.x_scale,
+                    -TRIANGLE_SIZE + state.pos.1,
+                ],
+            },
+        ])
+        .build();
 
     {
         let mut render_pass = RenderPassCreator::new(&view).build(&mut encoder);
@@ -79,9 +95,13 @@ fn resize(_: &AppData, state: &mut State, size: &PhysicalSize<u32>) {
 }
 
 fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
-    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderColorFromPos.wgsl", &app_data.device, &app_data.config)
-        .add_vertex_buffer(ColoredPosVertex::descriptor())
-        .build();
+    let render_pipeline = RenderPipelineCreator::from_shader_file(
+        "examples/shaderColorFromPos.wgsl",
+        &app_data.device,
+        &app_data.config,
+    )
+    .add_vertex_buffer(ColoredPosVertex::descriptor())
+    .build();
 
     vec.push(render_pipeline);
 }

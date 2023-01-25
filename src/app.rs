@@ -1,6 +1,11 @@
 use std::time::Instant;
 
-use wgpu::{Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
+use wgpu::{
+    Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device,
+    DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline,
+    RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView,
+    TextureViewDescriptor,
+};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -40,12 +45,16 @@ pub struct AppData {
 
 impl<T: 'static> App<T> {
     fn resize(&mut self, new_size: PhysicalSize<u32>) {
-        if new_size.width == 0 || new_size.height == 0 { return; }
+        if new_size.width == 0 || new_size.height == 0 {
+            return;
+        }
 
         self.app_data.size = new_size;
         self.app_data.config.width = new_size.width;
         self.app_data.config.height = new_size.height;
-        self.app_data.surface.configure(&self.app_data.device, &self.app_data.config);
+        self.app_data
+            .surface
+            .configure(&self.app_data.device, &self.app_data.config);
 
         if self.resize_fn.is_some() {
             self.resize_fn.unwrap()(&self.app_data, &mut self.state, &self.app_data.size)
@@ -53,7 +62,9 @@ impl<T: 'static> App<T> {
     }
 
     fn init(&mut self) {
-        if self.init_fn.is_none() { return; }
+        if self.init_fn.is_none() {
+            return;
+        }
 
         let mut render_pipelines = Vec::new();
         self.init_fn.unwrap()(&self.app_data, &mut self.state, &mut render_pipelines);
@@ -66,10 +77,15 @@ impl<T: 'static> App<T> {
         }
 
         let output = self.app_data.surface.get_current_texture()?;
-        let view = output.texture.create_view(&TextureViewDescriptor::default());
-        let encoder = self.app_data.device.create_command_encoder(&CommandEncoderDescriptor {
-            label: Some("Render Encoder"),
-        });
+        let view = output
+            .texture
+            .create_view(&TextureViewDescriptor::default());
+        let encoder = self
+            .app_data
+            .device
+            .create_command_encoder(&CommandEncoderDescriptor {
+                label: Some("Render Encoder"),
+            });
 
         self.render_fn.unwrap()(&self.app_data, &mut self.state, encoder, view);
 
@@ -83,54 +99,55 @@ impl<T: 'static> App<T> {
 
         window.set_visible(true);
 
-        event_loop.run(move |event, _, control_flow| {
-            match event {
-                Event::WindowEvent { ref event, window_id, } => {
-                    if window_id != window.id() {
-                        return;
+        event_loop.run(move |event, _, control_flow| match event {
+            Event::WindowEvent {
+                ref event,
+                window_id,
+            } => {
+                if window_id != window.id() {
+                    return;
+                }
+                match event {
+                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                    WindowEvent::Resized(physical_size) => {
+                        self.resize(*physical_size);
                     }
-                    match event {
-                        WindowEvent::CloseRequested => {
-                            *control_flow = ControlFlow::Exit
-                        }
-                        WindowEvent::Resized(physical_size) => {
-                            self.resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            self.resize(**new_inner_size);
-                        }
-                        _ => {
-                            if self.window_event_fn.is_some() {
-                                self.window_event_fn.unwrap()(&self.app_data, &mut self.state, event);
-                            }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        self.resize(**new_inner_size);
+                    }
+                    _ => {
+                        if self.window_event_fn.is_some() {
+                            self.window_event_fn.unwrap()(&self.app_data, &mut self.state, event);
                         }
                     }
                 }
-                Event::RedrawRequested(window_id) => {
-                    if window_id != window.id() { return; }
-
-                    self.app_data.delta_time = self.app_data.last_frame_instant.elapsed().as_secs_f64();
-                    self.app_data.fps = 1.0 / self.app_data.delta_time;
-
-                    self.app_data.last_frame_instant = Instant::now();
-
-                    if self.update_fn.is_some() {
-                        self.update_fn.unwrap()(&self.app_data, &mut self.state);
-                    }
-
-                    match self.render() {
-                        Ok(_) => {}
-                        Err(SurfaceError::Lost) => self.resize(self.app_data.size),
-                        Err(SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                        Err(e) => eprintln!("{:?}", e),
-                    }
-                }
-                Event::MainEventsCleared => {
-                    window.request_redraw();
-                }
-
-                _ => {}
             }
+            Event::RedrawRequested(window_id) => {
+                if window_id != window.id() {
+                    return;
+                }
+
+                self.app_data.delta_time = self.app_data.last_frame_instant.elapsed().as_secs_f64();
+                self.app_data.fps = 1.0 / self.app_data.delta_time;
+
+                self.app_data.last_frame_instant = Instant::now();
+
+                if self.update_fn.is_some() {
+                    self.update_fn.unwrap()(&self.app_data, &mut self.state);
+                }
+
+                match self.render() {
+                    Ok(_) => {}
+                    Err(SurfaceError::Lost) => self.resize(self.app_data.size),
+                    Err(SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
+                    Err(e) => eprintln!("{:?}", e),
+                }
+            }
+            Event::MainEventsCleared => {
+                window.request_redraw();
+            }
+
+            _ => {}
         });
     }
 }
@@ -248,13 +265,12 @@ impl<T: 'static> AppCreator<T> {
         let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(&self.window) };
 
-        let adapter = pollster::block_on(instance.request_adapter(
-            &RequestAdapterOptions {
-                power_preference: PowerPreference::default(),
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            },
-        )).unwrap();
+        let adapter = pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
+            power_preference: PowerPreference::default(),
+            compatible_surface: Some(&surface),
+            force_fallback_adapter: false,
+        }))
+        .unwrap();
 
         let (device, queue) = pollster::block_on(adapter.request_device(
             &DeviceDescriptor {
@@ -267,7 +283,8 @@ impl<T: 'static> AppCreator<T> {
                 label: None,
             },
             None,
-        )).unwrap();
+        ))
+        .unwrap();
 
         let config = SurfaceConfiguration {
             usage: TextureUsages::RENDER_ATTACHMENT,
@@ -318,6 +335,12 @@ pub type ResizeFn<T> = fn(app_data: &AppData, state: &mut T, size: &PhysicalSize
 
 pub type UpdateFn<T> = fn(app_data: &AppData, state: &mut T);
 
-pub type RenderFn<T> = fn(app_data: &AppData, state: &mut T, command_encoder: CommandEncoder, texture_view: TextureView);
+pub type RenderFn<T> = fn(
+    app_data: &AppData,
+    state: &mut T,
+    command_encoder: CommandEncoder,
+    texture_view: TextureView,
+);
 
-pub type InitFn<T> = fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
+pub type InitFn<T> =
+    fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);

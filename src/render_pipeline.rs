@@ -1,7 +1,13 @@
 use std::borrow::Cow;
 use std::fs;
 
-use wgpu::{BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Device, Face, FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode, PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule, ShaderModuleDescriptor, ShaderSource, SurfaceConfiguration, TextureFormat, VertexBufferLayout, VertexState};
+use wgpu::{
+    BindGroupLayout, BlendState, ColorTargetState, ColorWrites, DepthStencilState, Device, Face,
+    FragmentState, FrontFace, MultisampleState, PipelineLayoutDescriptor, PolygonMode,
+    PrimitiveState, PrimitiveTopology, RenderPipeline, RenderPipelineDescriptor, ShaderModule,
+    ShaderModuleDescriptor, ShaderSource, SurfaceConfiguration, TextureFormat, VertexBufferLayout,
+    VertexState,
+};
 
 /// Builder Patter for wgpu [RenderPipeline]
 pub struct RenderPipelineCreator<'a> {
@@ -24,12 +30,25 @@ pub struct RenderPipelineCreator<'a> {
 
 impl<'a> RenderPipelineCreator<'a> {
     /// creates an [RenderPipelineCreator] where the shader is from the path
-    pub fn from_shader_file(path: &'a str, device: &'a Device, config: &'a SurfaceConfiguration) -> RenderPipelineCreator<'a> {
-        Self::from_shader_code(&fs::read_to_string(path).unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path)), device, config)
+    pub fn from_shader_file(
+        path: &'a str,
+        device: &'a Device,
+        config: &'a SurfaceConfiguration,
+    ) -> RenderPipelineCreator<'a> {
+        Self::from_shader_code(
+            &fs::read_to_string(path)
+                .unwrap_or_else(|_| panic!("Could not find Shader-File at {}", path)),
+            device,
+            config,
+        )
     }
 
     /// creates an [RenderPipelineCreator] where the shader is based on the given code
-    pub fn from_shader_code(shader_code: &str, device: &'a Device, config: &'a SurfaceConfiguration) -> RenderPipelineCreator<'a> {
+    pub fn from_shader_code(
+        shader_code: &str,
+        device: &'a Device,
+        config: &'a SurfaceConfiguration,
+    ) -> RenderPipelineCreator<'a> {
         let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Render Pipeline Shader"),
             source: ShaderSource::Wgsl(Cow::from(shader_code)),
@@ -92,45 +111,48 @@ impl<'a> RenderPipelineCreator<'a> {
 
     /// creates a [RenderPipeline]
     pub fn build(&self) -> RenderPipeline {
-        let render_pipeline_layout = self.device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            label: Some(&(self.label.to_owned() + " Layout")),
-            bind_group_layouts: &self.bind_groups[..],
-            push_constant_ranges: &[],
-        });
+        let render_pipeline_layout =
+            self.device
+                .create_pipeline_layout(&PipelineLayoutDescriptor {
+                    label: Some(&(self.label.to_owned() + " Layout")),
+                    bind_group_layouts: &self.bind_groups[..],
+                    push_constant_ranges: &[],
+                });
 
-        self.device.create_render_pipeline(&RenderPipelineDescriptor {
-            label: Some(self.label),
-            layout: Some(&render_pipeline_layout),
-            vertex: VertexState {
-                module: &self.shader,
-                entry_point: self.vertex_main,
-                buffers: &self.vertex_buffers[..],
-            },
-            fragment: Some(FragmentState {
-                module: &self.shader,
-                entry_point: self.fragment_main,
-                targets: &[Some(ColorTargetState {
-                    format: self.format.to_owned(),
-                    blend: Some(self.blend_state),
-                    write_mask: ColorWrites::ALL,
-                })],
-            }),
-            primitive: PrimitiveState {
-                topology: PrimitiveTopology::TriangleList,
-                strip_index_format: None,
-                front_face: FrontFace::Ccw,
-                cull_mode: Some(Face::Back),
-                polygon_mode: PolygonMode::Fill,
-                unclipped_depth: false,
-                conservative: false,
-            },
-            depth_stencil: self.depth_stencil.to_owned(),
-            multisample: MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            multiview: None,
-        })
+        self.device
+            .create_render_pipeline(&RenderPipelineDescriptor {
+                label: Some(self.label),
+                layout: Some(&render_pipeline_layout),
+                vertex: VertexState {
+                    module: &self.shader,
+                    entry_point: self.vertex_main,
+                    buffers: &self.vertex_buffers[..],
+                },
+                fragment: Some(FragmentState {
+                    module: &self.shader,
+                    entry_point: self.fragment_main,
+                    targets: &[Some(ColorTargetState {
+                        format: self.format.to_owned(),
+                        blend: Some(self.blend_state),
+                        write_mask: ColorWrites::ALL,
+                    })],
+                }),
+                primitive: PrimitiveState {
+                    topology: PrimitiveTopology::TriangleList,
+                    strip_index_format: None,
+                    front_face: FrontFace::Ccw,
+                    cull_mode: Some(Face::Back),
+                    polygon_mode: PolygonMode::Fill,
+                    unclipped_depth: false,
+                    conservative: false,
+                },
+                depth_stencil: self.depth_stencil.to_owned(),
+                multisample: MultisampleState {
+                    count: 1,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                multiview: None,
+            })
     }
 }

@@ -1,4 +1,7 @@
-use wgpu::{Color, CommandEncoder, LoadOp, Operations, RenderPass, RenderPassColorAttachment, RenderPassDepthStencilAttachment, RenderPassDescriptor, TextureView};
+use wgpu::{
+    Color, CommandEncoder, LoadOp, Operations, RenderPass, RenderPassColorAttachment,
+    RenderPassDepthStencilAttachment, RenderPassDescriptor, TextureView,
+};
 
 /// Builder Patter for wgpu [RenderPass]
 pub struct RenderPassCreator<'a> {
@@ -37,7 +40,10 @@ impl<'a> RenderPassCreator<'a> {
     }
 
     /// sets the used [RenderPassDepthStencilAttachment]
-    pub fn depth_stencil_attachment(mut self, depth_stencil_attachment: RenderPassDepthStencilAttachment<'a>) -> Self {
+    pub fn depth_stencil_attachment(
+        mut self,
+        depth_stencil_attachment: RenderPassDepthStencilAttachment<'a>,
+    ) -> Self {
         self.depth_stencil_attachment = Some(depth_stencil_attachment);
         self
     }

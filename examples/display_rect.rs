@@ -31,14 +31,28 @@ fn main() {
 fn render(app_data: &AppData, _: &mut (), mut encoder: CommandEncoder, view: TextureView) {
     let vertex_buffer = BufferCreator::vertex(&app_data.device)
         .data(vec![
-            ColoredVertex { position: [-0.5, 0.5, 0.0], color: [0.2, 0.0, 0.3] },
-            ColoredVertex { position: [-0.5, -0.5, 0.0], color: [0.2, 0.0, 0.3] },
-            ColoredVertex { position: [0.5, 0.5, 0.0], color: [0.2, 0.0, 0.3] },
-            ColoredVertex { position: [0.5, -0.5, 0.0], color: [0.2, 0.0, 0.3] },
-        ]).build();
+            ColoredVertex {
+                position: [-0.5, 0.5, 0.0],
+                color: [0.2, 0.0, 0.3],
+            },
+            ColoredVertex {
+                position: [-0.5, -0.5, 0.0],
+                color: [0.2, 0.0, 0.3],
+            },
+            ColoredVertex {
+                position: [0.5, 0.5, 0.0],
+                color: [0.2, 0.0, 0.3],
+            },
+            ColoredVertex {
+                position: [0.5, -0.5, 0.0],
+                color: [0.2, 0.0, 0.3],
+            },
+        ])
+        .build();
 
     let indices_buffer = BufferCreator::indices(&app_data.device)
-        .data(vec![0, 1, 2, 2, 1, 3]).build();
+        .data(vec![0, 1, 2, 2, 1, 3])
+        .build();
 
     {
         let mut render_pass: RenderPass = RenderPassCreator::new(&view)
@@ -57,9 +71,13 @@ fn render(app_data: &AppData, _: &mut (), mut encoder: CommandEncoder, view: Tex
 }
 
 fn init(app_data: &AppData, _state: &mut (), vec: &mut Vec<RenderPipeline>) {
-    let render_pipeline = RenderPipelineCreator::from_shader_file("examples/shaderBasicColor.wgsl", &app_data.device, &app_data.config)
-        .add_vertex_buffer(ColoredVertex::descriptor())
-        .build();
+    let render_pipeline = RenderPipelineCreator::from_shader_file(
+        "examples/shaderBasicColor.wgsl",
+        &app_data.device,
+        &app_data.config,
+    )
+    .add_vertex_buffer(ColoredVertex::descriptor())
+    .build();
 
     vec.push(render_pipeline);
 }
