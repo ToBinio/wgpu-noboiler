@@ -1,6 +1,11 @@
 use std::time::Instant;
 
-use wgpu::{Adapter, Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
+use wgpu::{
+    Adapter, Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device,
+    DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline,
+    RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView,
+    TextureViewDescriptor,
+};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -281,11 +286,12 @@ impl<T: 'static> AppCreator<T> {
         let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(&self.window) };
 
-        let adapter: Adapter = pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
-            power_preference: self.power_preference,
-            compatible_surface: Some(&surface),
-            force_fallback_adapter: false,
-        }))
+        let adapter: Adapter =
+            pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
+                power_preference: self.power_preference,
+                compatible_surface: Some(&surface),
+                force_fallback_adapter: false,
+            }))
             .unwrap();
 
         let (device, queue) = pollster::block_on(adapter.request_device(
@@ -296,7 +302,7 @@ impl<T: 'static> AppCreator<T> {
             },
             None,
         ))
-            .unwrap();
+        .unwrap();
 
         let config = SurfaceConfiguration {
             usage: TextureUsages::RENDER_ATTACHMENT,
@@ -360,4 +366,4 @@ pub type RenderFn<T> = fn(
 );
 
 pub type InitFn<T> =
-fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
+    fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
