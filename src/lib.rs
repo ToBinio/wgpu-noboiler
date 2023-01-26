@@ -1,6 +1,6 @@
 //! # WGPU  NoBoiler
 //!
-//! A simplified Api for wgpu and winit
+//! Builder patter for wgpu and winit
 //!
 //! heavily based on the [WGPU-Tutorial](https://sotrh.github.io/learn-wgpu/)
 

@@ -4,7 +4,7 @@ version = "0.1.5"
 authors = ["ToBinio"]
 edition = "2021"
 license = "MIT"
-description = "A simplified Api for wgpu and winit"
+description = "Builder patter for wgpu and winit"
 categories = ["graphics"]
 exclude = [
     "/.idea"
