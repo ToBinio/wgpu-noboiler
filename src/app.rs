@@ -179,6 +179,7 @@ pub struct AppCreator<T: 'static> {
 
     present_mode: PresentMode,
     power_preference: PowerPreference,
+    device_limits: Limits,
 }
 
 impl<T: 'static> AppCreator<T> {
@@ -208,6 +209,7 @@ impl<T: 'static> AppCreator<T> {
 
             present_mode: PresentMode::Fifo,
             power_preference: PowerPreference::LowPower,
+            device_limits: Limits::default(),
         }
     }
 
@@ -279,6 +281,14 @@ impl<T: 'static> AppCreator<T> {
         self
     }
 
+    /// sets the [Limits] of the [Device]
+    ///
+    /// default: [Limits::default]
+    pub fn device_limits(mut self, limits: Limits) -> Self {
+        self.device_limits = limits;
+        self
+    }
+
     fn create_app_data(&self) -> AppData {
         env_logger::init();
         let size = self.window.inner_size();
@@ -297,7 +307,7 @@ impl<T: 'static> AppCreator<T> {
         let (device, queue) = pollster::block_on(adapter.request_device(
             &DeviceDescriptor {
                 features: wgpu::Features::empty(),
-                limits: Limits::default(),
+                limits: self.device_limits.clone(),
                 label: None,
             },
             None,
