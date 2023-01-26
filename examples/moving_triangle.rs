@@ -1,4 +1,6 @@
 use std::iter::once;
+use std::thread;
+use std::time::Duration;
 
 use wgpu::{CommandEncoder, PresentMode, RenderPipeline, TextureView, VertexAttribute};
 use winit::dpi::PhysicalSize;
@@ -33,12 +35,12 @@ fn main() {
         vel: (0.707, 0.707),
         x_scale: 9.0 / 16.0,
     })
-    .init(init)
-    .render(render)
-    .update(update)
-    .resize(resize)
-    .present_mode(PresentMode::Immediate)
-    .run()
+        .init(init)
+        .render(render)
+        .update(update)
+        .resize(resize)
+        .present_mode(PresentMode::Immediate)
+        .run()
 }
 
 fn render(app_data: &AppData, state: &mut State, mut encoder: CommandEncoder, view: TextureView) {
@@ -100,8 +102,8 @@ fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
         &app_data.device,
         &app_data.config,
     )
-    .add_vertex_buffer(ColoredPosVertex::descriptor())
-    .build();
+        .add_vertex_buffer(ColoredPosVertex::descriptor())
+        .build();
 
     vec.push(render_pipeline);
 }

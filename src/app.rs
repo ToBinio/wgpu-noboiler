@@ -1,11 +1,6 @@
 use std::time::Instant;
 
-use wgpu::{
-    Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device,
-    DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline,
-    RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView,
-    TextureViewDescriptor,
-};
+use wgpu::{Adapter, Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView, TextureViewDescriptor};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -25,11 +20,16 @@ pub struct App<T: 'static> {
 /// background data for your [App]
 pub struct AppData {
     last_frame_instant: Instant,
+    render_instant: Instant,
 
     ///Avg Frames Per Seconds of the last 30 Frames
     pub fps: f64,
     ///time since the last frame in seconds
     pub delta_time: f64,
+    ///duration of the the last renderFunction in seconds
+    pub render_time: f64,
+    ///duration of the the last renderFunction in seconds
+    pub update_time: f64,
 
     surface: Surface,
 
@@ -127,14 +127,21 @@ impl<T: 'static> App<T> {
                     return;
                 }
 
+                self.app_data.render_time = self.app_data.render_instant.elapsed().as_secs_f64();
+
                 self.app_data.delta_time = self.app_data.last_frame_instant.elapsed().as_secs_f64();
                 self.app_data.fps = 1.0 / self.app_data.delta_time;
 
                 self.app_data.last_frame_instant = Instant::now();
 
+                let update_instant = Instant::now();
+
                 if self.update_fn.is_some() {
                     self.update_fn.unwrap()(&self.app_data, &mut self.state);
                 }
+
+                self.app_data.update_time = update_instant.elapsed().as_secs_f64();
+                self.app_data.render_instant = Instant::now();
 
                 match self.render() {
                     Ok(_) => {}
@@ -166,6 +173,7 @@ pub struct AppCreator<T: 'static> {
     init_fn: Option<InitFn<T>>,
 
     present_mode: PresentMode,
+    power_preference: PowerPreference,
 }
 
 impl<T: 'static> AppCreator<T> {
@@ -194,6 +202,7 @@ impl<T: 'static> AppCreator<T> {
             init_fn: None,
 
             present_mode: PresentMode::Fifo,
+            power_preference: PowerPreference::LowPower,
         }
     }
 
@@ -236,6 +245,8 @@ impl<T: 'static> AppCreator<T> {
     }
 
     /// sets the [PresentMode] of the [Surface]
+    ///
+    /// default: [PresentMode::Fifo]
     pub fn present_mode(mut self, present_mode: PresentMode) -> Self {
         self.present_mode = present_mode;
         self
@@ -255,6 +266,14 @@ impl<T: 'static> AppCreator<T> {
         &mut self.window
     }
 
+    /// sets the [PowerPreference] of the [Adapter]
+    ///
+    /// default: [PresentMode::Fifo]
+    pub fn power_preference(mut self, power_preference: PowerPreference) -> Self {
+        self.power_preference = power_preference;
+        self
+    }
+
     fn create_app_data(&self) -> AppData {
         env_logger::init();
         let size = self.window.inner_size();
@@ -262,26 +281,22 @@ impl<T: 'static> AppCreator<T> {
         let instance = Instance::new(Backends::all());
         let surface = unsafe { instance.create_surface(&self.window) };
 
-        let adapter = pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
-            power_preference: PowerPreference::default(),
+        let adapter: Adapter = pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
+            power_preference: self.power_preference,
             compatible_surface: Some(&surface),
             force_fallback_adapter: false,
         }))
-        .unwrap();
+            .unwrap();
 
         let (device, queue) = pollster::block_on(adapter.request_device(
             &DeviceDescriptor {
                 features: wgpu::Features::empty(),
-                limits: if cfg!(target_arch = "wasm32") {
-                    Limits::downlevel_webgl2_defaults()
-                } else {
-                    Limits::default()
-                },
+                limits: Limits::default(),
                 label: None,
             },
             None,
         ))
-        .unwrap();
+            .unwrap();
 
         let config = SurfaceConfiguration {
             usage: TextureUsages::RENDER_ATTACHMENT,
@@ -302,9 +317,14 @@ impl<T: 'static> AppCreator<T> {
             size,
 
             last_frame_instant: Instant::now(),
+            render_instant: Instant::now(),
+
             render_pipelines: Vec::new(),
             fps: 0.0,
+
             delta_time: 1.0,
+            render_time: 1.0,
+            update_time: 1.0,
         }
     }
 
@@ -340,4 +360,4 @@ pub type RenderFn<T> = fn(
 );
 
 pub type InitFn<T> =
-    fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
+fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
