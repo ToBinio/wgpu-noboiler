@@ -13,9 +13,9 @@ repository = "https://github.com/ToBinio/wgpu-noboiler"
 keywords = ["graphics", "boiler", "noboiler", "boilerplate", "wgpu"]
 
 [dependencies]
-winit = "0.27"
+winit = "0.27.5"
 env_logger = "0.10.0"
-log = "0.4"
-wgpu = "0.14"
+log = "0.4.17"
+wgpu = "0.15.0"
 pollster = "0.2.5"
-bytemuck = { version = "1.12.3", features = ["derive"] }
+bytemuck = { version = "1.13.0", features = ["derive"] }

@@ -1,11 +1,6 @@
 use std::time::Instant;
 
-use wgpu::{
-    Adapter, Backends, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device,
-    DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline,
-    RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureUsages, TextureView,
-    TextureViewDescriptor,
-};
+use wgpu::{Adapter, CommandEncoder, CommandEncoderDescriptor, CompositeAlphaMode, Device, DeviceDescriptor, Instance, Limits, PowerPreference, PresentMode, Queue, RenderPipeline, RequestAdapterOptions, Surface, SurfaceConfiguration, SurfaceError, TextureFormat, TextureUsages, TextureView, TextureViewDescriptor};
 use winit::dpi::PhysicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -180,6 +175,8 @@ pub struct AppCreator<T: 'static> {
     present_mode: PresentMode,
     power_preference: PowerPreference,
     device_limits: Limits,
+
+    view_formats: Vec<TextureFormat>,
 }
 
 impl<T: 'static> AppCreator<T> {
@@ -210,6 +207,8 @@ impl<T: 'static> AppCreator<T> {
             present_mode: PresentMode::Fifo,
             power_preference: PowerPreference::LowPower,
             device_limits: Limits::default(),
+
+            view_formats: vec![],
         }
     }
 
@@ -273,6 +272,11 @@ impl<T: 'static> AppCreator<T> {
         &mut self.window
     }
 
+    pub fn add_view_formats(mut self, texture_format: TextureFormat) -> Self {
+        self.view_formats.push(texture_format);
+        self
+    }
+
     /// sets the [PowerPreference] of the [Adapter]
     ///
     /// default: [PresentMode::Fifo]
@@ -293,8 +297,8 @@ impl<T: 'static> AppCreator<T> {
         env_logger::init();
         let size = self.window.inner_size();
 
-        let instance = Instance::new(Backends::all());
-        let surface = unsafe { instance.create_surface(&self.window) };
+        let instance = Instance::default();
+        let surface = unsafe { instance.create_surface(&self.window).unwrap() };
 
         let adapter: Adapter =
             pollster::block_on(instance.request_adapter(&RequestAdapterOptions {
@@ -302,7 +306,7 @@ impl<T: 'static> AppCreator<T> {
                 compatible_surface: Some(&surface),
                 force_fallback_adapter: false,
             }))
-            .unwrap();
+                .unwrap();
 
         let (device, queue) = pollster::block_on(adapter.request_device(
             &DeviceDescriptor {
@@ -312,15 +316,16 @@ impl<T: 'static> AppCreator<T> {
             },
             None,
         ))
-        .unwrap();
+            .unwrap();
 
         let config = SurfaceConfiguration {
             usage: TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
+            format: surface.get_capabilities(&adapter).formats[0],
             width: size.width,
             height: size.height,
             present_mode: self.present_mode,
             alpha_mode: CompositeAlphaMode::Auto,
+            view_formats: self.view_formats.clone(),
         };
 
         surface.configure(&device, &config);
@@ -376,4 +381,4 @@ pub type RenderFn<T> = fn(
 );
 
 pub type InitFn<T> =
-    fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
+fn(app_data: &AppData, state: &mut T, render_pipelines: &mut Vec<RenderPipeline>);
