@@ -1,9 +1,6 @@
 use std::iter::once;
-use std::thread;
-use std::time::Duration;
 
 use wgpu::{CommandEncoder, PresentMode, RenderPipeline, TextureView, VertexAttribute};
-use winit::dpi::PhysicalSize;
 
 use wgpu_noboiler::app::{AppCreator, AppData};
 use wgpu_noboiler::buffer::BufferCreator;
@@ -35,12 +32,12 @@ fn main() {
         vel: (0.707, 0.707),
         x_scale: 9.0 / 16.0,
     })
-    .init(init)
-    .render(render)
-    .update(update)
-    .resize(resize)
-    .present_mode(PresentMode::Immediate)
-    .run()
+        .init(init)
+        .render(render)
+        .update(update)
+        .resize(resize)
+        .present_mode(PresentMode::Immediate)
+        .run()
 }
 
 fn render(app_data: &AppData, state: &mut State, mut encoder: CommandEncoder, view: TextureView) {
@@ -92,8 +89,8 @@ fn update(app_data: &AppData, state: &mut State) {
     state.pos.1 += state.vel.1 * app_data.delta_time as f32;
 }
 
-fn resize(_: &AppData, state: &mut State, size: &PhysicalSize<u32>) {
-    state.x_scale = size.height as f32 / size.width as f32;
+fn resize(_: &AppData, state: &mut State, size: (u32, u32)) {
+    state.x_scale = size.1 as f32 / size.0 as f32;
 }
 
 fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
@@ -102,8 +99,8 @@ fn init(app_data: &AppData, _state: &mut State, vec: &mut Vec<RenderPipeline>) {
         &app_data.device,
         &app_data.config,
     )
-    .add_vertex_buffer(ColoredPosVertex::descriptor())
-    .build();
+        .add_vertex_buffer(ColoredPosVertex::descriptor())
+        .build();
 
     vec.push(render_pipeline);
 }

@@ -57,7 +57,7 @@ impl<T: 'static> App<T> {
             .configure(&self.app_data.device, &self.app_data.config);
 
         if self.resize_fn.is_some() {
-            self.resize_fn.unwrap()(&self.app_data, &mut self.state, &self.app_data.size)
+            self.resize_fn.unwrap()(&self.app_data, &mut self.state, (self.app_data.size.width, self.app_data.size.height))
         }
     }
 
@@ -369,7 +369,7 @@ impl<T: 'static> AppCreator<T> {
 
 pub type WindowEventFn<T> = fn(app_data: &AppData, state: &mut T, window_event: &WindowEvent);
 
-pub type ResizeFn<T> = fn(app_data: &AppData, state: &mut T, size: &PhysicalSize<u32>);
+pub type ResizeFn<T> = fn(app_data: &AppData, state: &mut T, size: (u32, u32));
 
 pub type UpdateFn<T> = fn(app_data: &AppData, state: &mut T);
 

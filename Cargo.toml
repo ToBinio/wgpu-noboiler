@@ -1,6 +1,6 @@
 [package]
 name = "wgpu-noboiler"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["ToBinio"]
 edition = "2021"
 license = "MIT"
@@ -13,9 +13,9 @@ repository = "https://github.com/ToBinio/wgpu-noboiler"
 keywords = ["graphics", "boiler", "noboiler", "boilerplate", "wgpu"]
 
 [dependencies]
-winit = "0.27.5"
+winit = "0.28.1"
 env_logger = "0.10.0"
 log = "0.4.17"
 wgpu = "0.15.0"
-pollster = "0.2.5"
+pollster = "0.3.0"
 bytemuck = { version = "1.13.0", features = ["derive"] }
